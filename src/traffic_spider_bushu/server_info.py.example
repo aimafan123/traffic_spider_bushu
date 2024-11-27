@@ -1,0 +1,16 @@
+servers_info = [
+    {
+        "hostname": "x.x.x.x",  # 主机IP地址
+        "username": "root", # 主机用户名
+        "port": 22,    # 端口号
+        "private_key_path": "/home/username/.ssh/id_ed25519",    # 本地私钥地址
+        "docker_num": "2",  # 开启docker的数量，一般24美元一个月的vultr服务器开2个docker
+        "storage_path": "/root/xray_traffic",   # docker中数据存储路径
+        "protocal": "http", # 代理协议
+        "site": "jp",   # 代理服务器的物理位置
+        "ip_addr": "167.179.94.28", # 代理服务器的IP地址
+        "time_per_website": "7200", # 每个网站访问多长时间，单位s
+        "xray_name": "vultr5_http.json",    # xray配置文件的名称，配置文件在data/xray_config
+        "disk": "/dev/vda2",    # 部署服务器存储路径对应的磁盘名称，用于监控空闲空间
+    },
+]
