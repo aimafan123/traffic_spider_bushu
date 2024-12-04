@@ -55,3 +55,7 @@ docker cp {remote_xray_path} {container_name}:/app/config
 
 nohup docker exec {container_name} bash action.sh > {storage_path}/{container_name+'.log'} 2>&1 &   # 后台执行采集指令，并输出日志
 ```
+
+## 服务器监控程序
+可以运行 `bash bin/server_monitoring.sh` 检测服务器运行
+> 对应执行的程序 src/traffic_spider_bushu/server_monitoring.py 中调用了wechat_bot_aimafan库，该库为私有库，运行时需要将导入和对应引用去掉
