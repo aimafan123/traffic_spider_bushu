@@ -120,6 +120,7 @@ def handle_server(server):
     local_xray_path = os.path.join(
         project_path, "data", "xray_config", server["xray_name"]
     )
+    del_old_pcap_path = os.path.join(project_path, "data", "del_old_pcap.sh")
     remote_xray_path = "~/xray.json"
     docker_num = int(server["docker_num"])
     storage_path = server["storage_path"]
@@ -132,19 +133,27 @@ def handle_server(server):
     ssh.connect(hostname, port=port, username=username, key_filename=private_key_path)
 
     logger.info(f"{hostname}连接成功")
+    exec_command(ssh, f"rm -rf {storage_path}")  # 注意，这里删除掉了目录，要注意
+    exec_command(ssh, f"mkdir {storage_path}")
     # 使用SCP传送Docker镜像文件
     with SCPClient(ssh.get_transport()) as scp:
-        scp.put(local_image_path, remote_image_path)
+        # scp.put(local_image_path, remote_image_path)
         scp.put(local_xray_path, remote_xray_path)
+        scp.put(del_old_pcap_path, os.path.join(storage_path, "del_old_pcap.sh"))
 
     # 执行命令
     server_commands = [
         "ethtool -K docker0 tso off gso off gro off",
-        f"docker load -i {remote_image_path}",
     ]
     main_commands = []
     base_name = "spider_traffic"
     url_parts = split_file(os.path.join(project_path, "urls.txt"), docker_num)
+    for i in range(docker_num):
+        container_name = "_".join([base_name, str(i)])
+        server_commands.append(f"docker stop {container_name}")
+        server_commands.append(f"docker rm {container_name}")
+    server_commands.append("docker rmi 192.168.194.63:5000/spider_traffic:v2")
+    server_commands.append(f"docker load -i {remote_image_path}")
     for i in range(docker_num):
         container_name = "_".join([base_name, str(i)])
 
@@ -161,8 +170,6 @@ def handle_server(server):
         server_commands.append(
             f"echo '{get_exclude_content()}' > {os.path.join(config_dir, 'exclude_keywords')}"
         )
-        server_commands.append(f"docker stop {container_name}")
-        server_commands.append(f"docker rm {container_name}")
 
         server_commands.append(
             f"docker run -v {os.path.join(storage_path, container_name, 'data')}:/app/data "
