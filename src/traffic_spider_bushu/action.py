@@ -70,12 +70,6 @@ def get_config_content(server):
 name={server["hostname"]}
 protocal={server["protocal"]}
 site={server["site"]}
-ip_addr={server["ip_addr"]}
-
-#这里代理默认使用http代理
-[proxy]
-host=127.0.0.1
-port=10809
 
 [spider]
 depth=-1
@@ -117,11 +111,8 @@ def handle_server(server):
         project_path, "data", "spider_traffic.tar"
     )  # 本地Docker镜像文件路径
     remote_image_path = "~/spider_traffic.tar"  # 目标服务器上保存镜像的路径
-    local_xray_path = os.path.join(
-        project_path, "data", "xray_config", server["xray_name"]
-    )
+
     del_old_pcap_path = os.path.join(project_path, "data", "del_old_pcap.sh")
-    remote_xray_path = "~/xray.json"
     docker_num = int(server["docker_num"])
     storage_path = server["storage_path"]
     image_name = config["spider"]["image_name"]
@@ -138,7 +129,6 @@ def handle_server(server):
     # 使用SCP传送Docker镜像文件
     with SCPClient(ssh.get_transport()) as scp:
         # scp.put(local_image_path, remote_image_path)
-        scp.put(local_xray_path, remote_xray_path)
         scp.put(del_old_pcap_path, os.path.join(storage_path, "del_old_pcap.sh"))
 
     # 执行命令
@@ -152,7 +142,7 @@ def handle_server(server):
         container_name = "_".join([base_name, str(i)])
         server_commands.append(f"docker stop {container_name}")
         server_commands.append(f"docker rm {container_name}")
-    server_commands.append("docker rmi 192.168.194.63:5000/spider_traffic:v2")
+    server_commands.append("docker rmi 192.168.194.63:5000/spider_traffic:v3")
     server_commands.append(f"docker load -i {remote_image_path}")
     for i in range(docker_num):
         container_name = "_".join([base_name, str(i)])
@@ -179,9 +169,6 @@ def handle_server(server):
         )
         server_commands.append(
             f"docker exec  {container_name} ethtool -K eth0 tso off gso off gro off lro off"
-        )
-        server_commands.append(
-            f"docker cp {remote_xray_path} {container_name}:/app/config"
         )
         main_commands.append(
             f"nohup docker exec {container_name} bash action.sh > {os.path.join(storage_path, container_name+'.log')} 2>&1 &"

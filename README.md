@@ -8,15 +8,25 @@ docker代码项目路径 [https://github.com/ZGC-BUPT-aimafan/spider_traffic.git
 
 **注意1：需事先在服务器上安装docker并配置公私钥**
 
+```
+curl -fsSL https://get.docker.com | sh
+```
+
 **注意2：如果是非root用户登录服务器，需要手动在服务器上执行`ethtool -K docker0 tso off gso off gro off`**
 
 1. 安装依赖库
 ```
 pip install -r requirments.txt
 ```
-2. 将xray客户端配置文件放到`data/xray_config/`目录中
 3. 将需要采集的网站写入到项目目录的`urls.txt`文件中
+
 4. 将docker镜像文件放在`data/spider_traffic.tar`，以便等会儿上传到服务器
+
+```
+docker pull 192.168.194.63:5000/spider_traffic:v3
+docker save -o spider_traffic.tar 192.168.194.63:5000/spider_traffic:v3
+```
+
 5. 修改`config/config.ini`，将镜像名称修改为当前使用的镜像名称
 6. 将服务器信息填到`src/traffic_spider_bushu/server_info.py.example`，并将文件名称改为`server_info.py`
 7. 在`src`目录，执行
