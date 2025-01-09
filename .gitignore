@@ -11,3 +11,4 @@ init_program.sh
 .venv
 server_info.py
 urls*
+config/config.ini

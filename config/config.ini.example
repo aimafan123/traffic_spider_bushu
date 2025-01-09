@@ -1,0 +1,9 @@
+[spider]
+image_name = aimafan/spider_traffic:v2
+
+[mysql]
+host = x.x.x.x
+user = root
+port = 3306
+password = password
+database = database

@@ -14,7 +14,7 @@ from traffic_spider_bushu.myutils.config import get_database_config
 from traffic_spider_bushu.myutils.logger import logger
 from traffic_spider_bushu.server_info import servers_info
 
-LOCAL_DIR_root = "/netdisk/aimafan/traffic_datasets/ConfuseWFP_raw"
+LOCAL_DIR_root = "/netdisk/aimafan/traffic_datasets/ConfuseWebpage"
 os_name = "debian12"
 PROCESSED_PATHS_FILE = os.path.join(project_path, "data", "processed_path.txt")
 
@@ -153,8 +153,8 @@ def main():
             pcap_paths.append(
                 os.path.join(root_path, "spider_traffic_" + str(i), "data", "pcap")
             )
-        for pcap_path in pcap_paths:
-            insert_into_db(pcap_path, protocol=server_info["protocal"])
+        # for pcap_path in pcap_paths:
+        #    insert_into_db(pcap_path, protocol=server_info["protocal"])
 
 
 if __name__ == "__main__":
