@@ -2,7 +2,7 @@
 
 这个项目可以实现流量采集程序的自动部署，支持一次性在多个服务器上启动多个docker采集流量。
 
-docker代码项目路径 [https://github.com/ZGC-BUPT-aimafan/spider_traffic.git]()
+docker代码项目路径 [https://github.com/ZGC-BUPT-aimafan/spider_traffic.git](https://github.com/ZGC-BUPT-aimafan/spider_traffic.git)
 
 ## 部署步骤
 
