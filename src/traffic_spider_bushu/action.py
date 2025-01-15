@@ -124,7 +124,7 @@ def handle_server(server):
     private_key_path = server["private_key_path"]
 
     # 远程服务器上保存Docker镜像的路径
-    remote_image_path = "~/spider_traffic.tar"
+    remote_image_path = config["spider"]["remote_image_path"]
 
     # 本地Xray配置文件的路径
     local_xray_path = os.path.join(
@@ -158,7 +158,7 @@ def handle_server(server):
     # 删除并重新创建存储路径
     exec_command(ssh, f"rm -rf {storage_path}")  # 注意：这里会删除目录，需谨慎
     exec_command(ssh, f"mkdir {storage_path}")
-    # 使用SCP传送Docker镜像文件
+
     with SCPClient(ssh.get_transport()) as scp:
         # 传输Xray配置文件
         scp.put(local_xray_path, remote_xray_path)
@@ -234,7 +234,7 @@ def handle_server(server):
 
         # 在容器内执行主命令，并将输出重定向到日志文件
         main_commands.append(
-            f"nohup docker exec {container_name} bash action.sh > {os.path.join(storage_path, container_name+'.log')} 2>&1 &"
+            f"nohup docker exec {container_name} bash action.sh > {os.path.join(storage_path, container_name + '.log')} 2>&1 &"
         )
 
     for sever_command in server_commands:
@@ -325,7 +325,7 @@ def main(action):
     # 启动线程
     for server in servers_info:
         if action != "list":
-            logger.info(f"开始处理{server["hostname"]}")
+            logger.info(f"开始处理{server['hostname']}")
         if action == "bushu":
             handle_server(server)
         elif action == "stop":

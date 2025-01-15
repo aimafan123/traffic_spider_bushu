@@ -1,5 +1,6 @@
 [spider]
 image_name = aimafan/spider_traffic:v2
+remote_image_path = ~/spider_traffic.tar
 
 [mysql]
 host = x.x.x.x

@@ -12,3 +12,7 @@ init_program.sh
 server_info.py
 urls*
 config/config.ini
+!/data/xray_config/
+/data/xray_config/*
+!/data/xray_config/*.example
+!*.example

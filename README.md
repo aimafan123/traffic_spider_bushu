@@ -1,25 +1,29 @@
 # 自动部署流量采集程序
 
-可以实现流量采集程序的自动部署，可以一次性在服务器上开启多个docker采集流量
+这个项目可以实现流量采集程序的自动部署，支持一次性在多个服务器上启动多个docker采集流量。
 
 docker代码项目路径 [https://github.com/ZGC-BUPT-aimafan/spider_traffic.git]()
 
 ## 部署步骤
 
-**注意1：需事先在服务器上安装docker并配置公私钥**
-
-**注意2：如果是非root用户登录服务器，需要手动在服务器上执行`ethtool -K docker0 tso off gso off gro off`**
+0. 前期准备
+- 代码在 `python3.12.3` 下测试通过
+- 需事先在服务器上安装docker并配置公私钥
+- 如果是非root用户登录服务器，需要手动在服务器上执行
+```
+ethtool -K docker0 tso off gso off gro off
+```
+- 需要事先将docker镜像文件放在所有远程服务器的 `~` 路径，并将路径名写入到config.ini中，默认所有远程服务器的镜像路径相同
 
 1. 安装依赖库
 ```
-pip install -r requirments.txt
+pip install -r requirements.txt
 ```
-2. 将xray客户端配置文件放到`data/xray_config/`目录中
-3. 将需要采集的网站写入到项目目录的`urls.txt`文件中
-4. 将docker镜像文件放在`data/spider_traffic.tar`，以便等会儿上传到服务器
-5. 修改`config/config.ini`，将镜像名称修改为当前使用的镜像名称
-6. 将服务器信息填到`src/traffic_spider_bushu/server_info.py.example`，并将文件名称改为`server_info.py`
-7. 在`src`目录，执行
+2. 参照 `data/xray_config/trojan.json.example` ，将xray客户端配置文件放到`data/xray_config/`目录中
+3. 参照 `urls.txt.example` ，将需要采集的网站写入到项目目录的`urls.txt`文件中，注意，每行一个付费域
+4. 修改`config/config.ini.example`，并将名称修改为 `config/config.ini`
+5. 将服务器信息填到`src/traffic_spider_bushu/server_info.py.example`，并将文件名称改为`server_info.py`
+6. 在`src`目录，执行
 ```
 python -m traffic_spider_bushu.action
 ```
@@ -31,7 +35,6 @@ python -m traffic_spider_bushu.action
 部署过程将在服务器上依次执行以下指令，如果不需要某些指令，可手动在代码中注释
 
 ```bash
-scp -r data/spider_traffic.tar {username}@{host_name}:~/
 scp -r data/xray_config/{xray_name} {username}@{host_name}:~/
 
 ethtool -K docker0 tso off gso off gro off  #如果非root用户，该指令不会成功
