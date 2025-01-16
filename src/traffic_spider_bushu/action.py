@@ -41,6 +41,7 @@ policies
 Policies
 policy
 Policy
+account
 """
     return exclude_str
 
@@ -83,7 +84,10 @@ depth=-1
 time_per_website={server["time_per_website"]}
 # 爬虫连续爬取URL的延时。单位秒
 download_delay = 60
-image_name = aimafan/spider_traffic:latest"""
+mode = {server["spider_mode"]}
+scroll = {server["scroll"]}
+scroll_num = {server["scroll_num"]}
+webnum={server["webnum"]}"""
 
     return config_str
 

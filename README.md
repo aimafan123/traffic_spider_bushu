@@ -2,18 +2,27 @@
 
 这个项目可以实现流量采集程序的自动部署，支持一次性在多个服务器上启动多个docker采集流量。
 
-docker代码项目路径 [https://github.com/ZGC-BUPT-aimafan/spider_traffic.git](https://github.com/ZGC-BUPT-aimafan/spider_traffic.git)
+docker代码项目路径 [spider_traffic.git](https://github.com/ZGC-BUPT-aimafan/spider_traffic.git)
+
+## 功能
+
+爬虫包括三种模式（目前还不支持Tor），可以选择每个网站爬取的最大网页数，每个网页最大滚动次数
+
+- [x] direct
+- [x] xray
+- [ ] tor
+
 
 ## 部署步骤
 
 0. 前期准备
 - 代码在 `python3.12.3` 下测试通过
+- 需要事先使用spider_traffic.git项目编译docker镜像，并将docker镜像文件放在所有远程服务器的 `~` 路径，并将路径名写入到config.ini中，默认所有远程服务器的镜像路径相同
 - 需事先在服务器上安装docker并配置公私钥
 - 如果是非root用户登录服务器，需要手动在服务器上执行
 ```
 ethtool -K docker0 tso off gso off gro off
 ```
-- 需要事先将docker镜像文件放在所有远程服务器的 `~` 路径，并将路径名写入到config.ini中，默认所有远程服务器的镜像路径相同
 
 1. 安装依赖库
 ```

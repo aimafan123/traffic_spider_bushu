@@ -15,5 +15,6 @@ config/config.ini
 !/data/xray_config/
 /data/xray_config/*
 !/data/xray_config/*.example
+!/data/xray_config/direct.json
 !*.example
 !/data/*.sh
