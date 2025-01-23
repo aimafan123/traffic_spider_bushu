@@ -7,8 +7,8 @@ import subprocess
 from datetime import datetime
 
 import paramiko
-from pypcaptools import PcapToDatabaseHandler
 
+# from pypcaptools import PcapToDatabaseHandler
 from traffic_spider_bushu.myutils import project_path
 from traffic_spider_bushu.myutils.config import get_database_config
 from traffic_spider_bushu.myutils.logger import logger
@@ -71,45 +71,45 @@ def sync_data(hostname, username, remote_dir, protocal):
     return local_path
 
 
-def insert_into_db(pcap_path, protocol):
-    db_config = get_database_config()
-    db_config["table"] = protocol
+# def insert_into_db(pcap_path, protocol):
+#     db_config = get_database_config()
+#     db_config["table"] = protocol
 
-    # 加载已处理的路径
-    processed_paths = load_processed_paths()
+#     # 加载已处理的路径
+#     processed_paths = load_processed_paths()
 
-    for root, _, files in os.walk(pcap_path):
-        for file_name in files:
-            if file_name.endswith(".pcap"):
-                if not compare_time_in_filename(file_name):
-                    continue
+#     for root, _, files in os.walk(pcap_path):
+#         for file_name in files:
+#             if file_name.endswith(".pcap"):
+#                 if not compare_time_in_filename(file_name):
+#                     continue
 
-                full_pcap_path = os.path.join(root, file_name)
+#                 full_pcap_path = os.path.join(root, file_name)
 
-                # 检查路径是否已经处理过
-                if full_pcap_path in processed_paths:
-                    logger.info(f"跳过已处理的路径: {full_pcap_path}")
-                    continue
+#                 # 检查路径是否已经处理过
+#                 if full_pcap_path in processed_paths:
+#                     logger.info(f"跳过已处理的路径: {full_pcap_path}")
+#                     continue
 
-                # 提取 domain 和 site 信息
-                pcap_split = os.path.splitext(file_name)[0].split("_")
-                domain = pcap_split[-1]
-                site = pcap_split[-2]
+#                 # 提取 domain 和 site 信息
+#                 pcap_split = os.path.splitext(file_name)[0].split("_")
+#                 domain = pcap_split[-1]
+#                 site = pcap_split[-2]
 
-                logger.info(f"开始处理 {full_pcap_path}")
+#                 logger.info(f"开始处理 {full_pcap_path}")
 
-                # 初始化处理器并处理数据
-                handler = PcapToDatabaseHandler(
-                    db_config,
-                    full_pcap_path,
-                    protocol,
-                    domain,
-                    site + "_" + os_name,
-                )
-                handler.split_flow_to_database()
+#                 # 初始化处理器并处理数据
+#                 handler = PcapToDatabaseHandler(
+#                     db_config,
+#                     full_pcap_path,
+#                     protocol,
+#                     domain,
+#                     site + "_" + os_name,
+#                 )
+#                 handler.split_flow_to_database()
 
-                # 处理完成后保存路径
-                save_processed_path(full_pcap_path)
+#                 # 处理完成后保存路径
+#                 save_processed_path(full_pcap_path)
 
 
 def kill_remote_pcap(hostname, port, username, private_key_path, storage_path):
@@ -117,7 +117,7 @@ def kill_remote_pcap(hostname, port, username, private_key_path, storage_path):
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(hostname, port=port, username=username, key_filename=private_key_path)
     stdin, stdout, stderr = ssh.exec_command(
-        f'bash {os.path.join(storage_path, "del_old_pcap.sh")}'
+        f"bash {os.path.join(storage_path, 'del_old_pcap.sh')}"
     )
     error = stderr.read().decode()
     if error:

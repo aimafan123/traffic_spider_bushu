@@ -74,10 +74,10 @@ protocal={server["protocal"]}
 site={server["site"]}
 ip_addr={server["ip_addr"]}
 
-#这里代理默认使用http代理
+#这里代理xray使用http代理，tor使用socks5h代理
 [proxy]
 host=127.0.0.1
-port=10809
+port={server["proxy_port"]}
 
 [spider]
 depth=-1
@@ -121,6 +121,11 @@ def handle_server(server):
     Args:
         server (dict): 包含服务器信息的字典，如主机名、用户名、端口、私钥路径等。
     """
+    # 爬虫类型只有直连，tor和xray
+    spider_modes = ["direct", "xray", "tor"]
+    if server["spider_mode"] not in spider_modes:
+        raise ValueError("spider_mode must be one of %r." % spider_modes)
+
     # 从服务器信息字典中提取必要的参数
     hostname = server["hostname"]
     username = server["username"]
@@ -130,16 +135,19 @@ def handle_server(server):
     # 远程服务器上保存Docker镜像的路径
     remote_image_path = config["spider"]["remote_image_path"]
 
-    # 本地Xray配置文件的路径
-    local_xray_path = os.path.join(
-        project_path, "data", "xray_config", server["xray_name"]
-    )
+    if server["spider_mode"] == "xray" or server["spider_mode"] == "direct":
+        local_config_path = os.path.join(
+            project_path, "data", "xray_config", server["xray_name"]
+        )
+        remote_config_path = "~/xray.json"
+    elif server["spider_mode"] == "tor":
+        local_config_path = os.path.join(
+            project_path, "data", "torrc_s", server["torrc_name"]
+        )
+        remote_config_path = "~/torrc"
 
     # 本地删除旧pcap文件的脚本路径
     del_old_pcap_path = os.path.join(project_path, "data", "del_old_pcap.sh")
-
-    # 远程服务器上保存Xray配置文件的路径
-    remote_xray_path = "~/xray.json"
 
     # 从服务器信息中获取Docker容器的数量
     docker_num = int(server["docker_num"])
@@ -164,8 +172,8 @@ def handle_server(server):
     exec_command(ssh, f"mkdir {storage_path}")
 
     with SCPClient(ssh.get_transport()) as scp:
-        # 传输Xray配置文件
-        scp.put(local_xray_path, remote_xray_path)
+        # 传输Xray配置文件或torrc文件
+        scp.put(local_config_path, remote_config_path)
         # 传输删除旧pcap文件的脚本
         scp.put(del_old_pcap_path, os.path.join(storage_path, "del_old_pcap.sh"))
 
@@ -233,7 +241,7 @@ def handle_server(server):
 
         # 将Xray配置文件复制到容器内
         server_commands.append(
-            f"docker cp {remote_xray_path} {container_name}:/app/config"
+            f"docker cp {remote_config_path} {container_name}:/app/config"
         )
 
         # 在容器内执行主命令，并将输出重定向到日志文件
