@@ -16,5 +16,6 @@ config/config.ini
 /data/xray_config/*
 !/data/xray_config/*.example
 !/data/xray_config/direct.json
+!/data/del_old_pcap.sh
 !*.example
 !/data/*.sh
