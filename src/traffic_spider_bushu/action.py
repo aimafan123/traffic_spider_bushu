@@ -88,6 +88,7 @@ mode = {server["spider_mode"]}
 scroll = {server["scroll"]}
 scroll_num = {server["scroll_num"]}
 webnum={server["webnum"]}"""
+    # multisite_num={server["multisite_num"]}"""
 
     return config_str
 
@@ -384,5 +385,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.action)
-
-    # main()

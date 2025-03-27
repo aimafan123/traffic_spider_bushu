@@ -14,7 +14,7 @@ from traffic_spider_bushu.myutils.config import get_database_config
 from traffic_spider_bushu.myutils.logger import logger
 from traffic_spider_bushu.server_info import servers_info
 
-LOCAL_DIR_root = "/netdisk/aimafan/traffic_datasets/ConfuseWebpage"
+LOCAL_DIR_root = "/netdisk/aimafan/traffic_datasets/ss_back"
 os_name = "debian12"
 PROCESSED_PATHS_FILE = os.path.join(project_path, "data", "processed_path.txt")
 

@@ -11,10 +11,11 @@ servers_info = [
         "site": "jp",  # 代理服务器的物理位置
         "ip_addr": "167.179.94.28",  # 代理服务器的IP地址，如果没有代理服务器，此处随便填
         "time_per_website": "90",  # 每个网站访问多长时间，单位s
-        "spider_mode": "xray",  # 爬虫模式，目前支持两种爬虫模式："direct"和"xray"
+        "spider_mode": "xray",  # 爬虫模式
         "scroll": "true",  # 每次访问网站是否滚动
         "scroll_num": 5,  # 每次滚动的最大次数，如果不滚动，此处填0
         "webnum": 1,  # 每个网站访问网页的个数，-1表示无限访问网页，1表示只访问主页
+        "multisite_num": 3, # 一次访问中，网站的数量，对应spider_traffic中的multi-site分支
         "xray_name": "vultr5_http.json",  # xray配置文件的名称，配置文件在data/xray_config，如果采用direct模式的话，此处填 direct.json
         "disk": "/dev/vda2",  # 部署服务器存储路径对应的磁盘名称，用于监控空闲空间
     },
@@ -30,11 +31,12 @@ servers_info = [
         "site": "jp",  # 代理服务器的物理位置
         "ip_addr": "167.179.94.28",  # 代理服务器的IP地址，如果没有代理服务器，此处随便填
         "time_per_website": "90",  # 每个网站访问多长时间，单位s
-        "spider_mode": "tor",  # 爬虫模式，目前支持两种爬虫模式："direct"和"xray"
+        "spider_mode": "tor",  # 爬虫模式
         "torrc_name": "torrc_tor",  # torrc配置文件的名称
         "scroll": "true",  # 每次访问网站是否滚动
         "scroll_num": 5,  # 每次滚动的最大次数，如果不滚动，此处填0
         "webnum": 1,  # 每个网站访问网页的个数，-1表示无限访问网页，1表示只访问主页
+        "multisite_num": 3, # 一次访问中，网站的数量，对应spider_traffic中的multi-site分支
         "disk": "/dev/vda2",  # 部署服务器存储路径对应的磁盘名称，用于监控空闲空间
     },
     {
@@ -49,10 +51,11 @@ servers_info = [
         "site": "jp",  # 代理服务器的物理位置
         "ip_addr": "167.179.94.28",  # 代理服务器的IP地址，如果没有代理服务器，此处随便填
         "time_per_website": "7200",  # 每个网站访问多长时间，单位s
-        "spider_mode": "direct",  # 爬虫模式，目前支持两种爬虫模式："direct"和"xray"
+        "spider_mode": "direct",  # 爬虫模式
         "scroll": "true",  # 每次访问网站是否滚动
         "scroll_num": 5,  # 每次滚动的最大次数，如果不滚动，此处填0
         "webnum": 1,  # 每个网站访问网页的个数，-1表示无限访问网页，1表示只访问主页
+        "multisite_num": 3, # 一次访问中，网站的数量，对应spider_traffic中的multi-site分支
         "disk": "/dev/vda2",  # 部署服务器存储路径对应的磁盘名称，用于监控空闲空间
     },
 ]
