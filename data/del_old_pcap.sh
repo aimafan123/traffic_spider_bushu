@@ -18,8 +18,8 @@ find . -type f -name "*.pcap" | while read file; do
   # 计算当前时间减去文件时间的差值
   time_diff=$((current_timestamp - file_timestamp))
 
-  # 如果差值大于 4 小时（14400 秒），删除该文件
-  if [ "$time_diff" -gt 14400 ]; then
+  # 如果差值大于 8 小时（28800 秒），删除该文件
+  if [ "$time_diff" -gt 28800 ]; then
     echo "Deleting $file"
     rm "$file"
   fi

@@ -31,6 +31,7 @@ def exec_command(client, command):
         print(f"{err}")
 
 
+# 获取排除关键词内容
 def get_exclude_content():
     exclude_str = """egister
 ignin
@@ -46,11 +47,13 @@ account
     return exclude_str
 
 
+# 获取running内容
 def get_running_content():
     running_str = """{"currentIndex": 0}"""
     return running_str
 
 
+# 执行命令并打印日志
 def run_command(ssh, command):
     logger.info(command)
     stdin, stdout, stderr = ssh.exec_command(command)
@@ -67,6 +70,7 @@ def async_upload_file(sftp, local_file, remote_file):
         print(f"Warning: Local file '{local_file}' does not exist.")
 
 
+# 生成服务器专属配置文件内容
 def get_config_content(server):
     config_str = f"""[information]
 name={server["hostname"]}
@@ -87,12 +91,14 @@ download_delay = 60
 mode = {server["spider_mode"]}
 scroll = {server["scroll"]}
 scroll_num = {server["scroll_num"]}
+multisite_num = {server["multisite_num"]}
 webnum={server["webnum"]}"""
     # multisite_num={server["multisite_num"]}"""
 
     return config_str
 
 
+# 按数量分割文件内容
 def split_file(input_file, num):
     # 读取文件内容
     with open(input_file, "r") as file:
@@ -125,7 +131,7 @@ def handle_server(server):
     # 爬虫类型只有直连，tor和xray
     spider_modes = ["direct", "xray", "tor"]
     if server["spider_mode"] not in spider_modes:
-        raise ValueError("spider_mode must be one of %r." % spider_modes)
+        raise ValueError("spider_mode 必须是 %r 之一." % spider_modes)
 
     # 从服务器信息字典中提取必要的参数
     hostname = server["hostname"]
@@ -136,6 +142,7 @@ def handle_server(server):
     # 远程服务器上保存Docker镜像的路径
     remote_image_path = config["spider"]["remote_image_path"]
 
+    # 根据爬虫类型选择配置文件路径
     if server["spider_mode"] == "xray" or server["spider_mode"] == "direct":
         local_config_path = os.path.join(
             project_path, "data", "xray_config", server["xray_name"]
@@ -172,11 +179,13 @@ def handle_server(server):
     exec_command(ssh, f"rm -rf {storage_path}")  # 注意：这里会删除目录，需谨慎
     exec_command(ssh, f"mkdir {storage_path}")
 
-    with SCPClient(ssh.get_transport()) as scp:
-        # 传输Xray配置文件或torrc文件
+    transport = ssh.get_transport()
+    if transport is None:
+        raise RuntimeError("SSH transport not established. Did you call ssh.connect()?")
+
+    with SCPClient(transport) as scp:
         scp.put(local_config_path, remote_config_path)
-        # 传输删除旧pcap文件的脚本
-        scp.put(del_old_pcap_path, os.path.join(storage_path, "del_old_pcap.sh"))
+        scp.put(del_old_pcap_path, f"{storage_path}/del_old_pcap.sh")
 
     # 初始化服务器命令列表
     server_commands = [
@@ -189,8 +198,17 @@ def handle_server(server):
     # 基础容器名称
     base_name = "spider_traffic"
 
-    # 分割URL文件，每个Docker容器分配一部分URL
-    url_parts = split_file(os.path.join(project_path, "urls.txt"), docker_num)
+    # 统计所有主机的docker总数
+    total_docker_num = sum(int(s["docker_num"]) for s in servers_info)
+    # 计算当前server在所有docker中的起始索引
+    start_index = 0
+    for s in servers_info:
+        if s["hostname"] == server["hostname"]:
+            break
+        start_index += int(s["docker_num"])
+
+    # 分割URL文件
+    url_parts = split_file(os.path.join(project_path, "urls.txt"), total_docker_num)
 
     # 为每个Docker容器生成配置和启动命令
     for i in range(docker_num):
@@ -201,15 +219,13 @@ def handle_server(server):
         server_commands.append(f"docker rm {container_name}")
 
     # 加载新的Docker镜像
-    server_commands.append(f"docker load -i {remote_image_path}")
+    # server_commands.append(f"docker load -i {remote_image_path}")
 
     # 为每个Docker容器创建配置目录并写入配置文件
     for i in range(docker_num):
         container_name = "_".join([base_name, str(i)])
-
-        # 创建配置目录
         config_dir = os.path.join(storage_path, container_name, "config")
-        server_commands.append(f"mkdir -p {config_dir}")
+        exec_command(ssh, f"mkdir -p {config_dir}")
 
         # 生成并写入配置文件
         config_content = get_config_content(server)
@@ -217,10 +233,16 @@ def handle_server(server):
             f"echo '{config_content}' > {os.path.join(config_dir, 'config.ini')}"
         )
 
-        # 写入URL列表文件
-        server_commands.append(
-            f"echo '{url_parts[i]}' > {os.path.join(config_dir, 'current_docker_url_list.txt')}"
-        )
+        # 本地生成临时url文件
+        local_url_file = f"/tmp/{container_name}_current_docker_url_list.txt"
+        with open(local_url_file, "w") as f:
+            f.write(url_parts[start_index + i])
+
+        # 上传到服务器
+        with SCPClient(transport) as scp:
+            scp.put(
+                local_url_file, os.path.join(config_dir, "current_docker_url_list.txt")
+            )
 
         # 写入排除关键词文件
         server_commands.append(
@@ -250,13 +272,47 @@ def handle_server(server):
             f"nohup docker exec {container_name} bash action.sh > {os.path.join(storage_path, container_name + '.log')} 2>&1 &"
         )
 
+    # 执行所有服务器命令
     for sever_command in server_commands:
         exec_command(ssh, sever_command)
 
+    # 执行主命令
     for main_command in main_commands:
         exec_command(ssh, main_command)
 
 
+# 启动服务器中的docker
+def start_docker(server):
+    # 开始服务器中docker运行
+    base_name = "spider_traffic"
+    hostname = server["hostname"]
+    username = server["username"]
+    port = server["port"]
+    private_key_path = server["private_key_path"]
+    storage_path = server["storage_path"]
+
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    # try:
+    # 连接服务器,并初始化服务器
+    # 使用私钥连接
+    ssh.connect(hostname, port=port, username=username, key_filename=private_key_path)
+
+    logger.info(f"{hostname}连接成功")
+    docker_num = int(server["docker_num"])
+    server_commands = []
+
+    for i in range(docker_num):
+        container_name = "_".join([base_name, str(i)])
+        server_commands.append(f"docker start {container_name}")
+        server_commands.append(
+            f"nohup docker exec {container_name} bash action.sh > {os.path.join(storage_path, container_name + '.log')} 2>&1 &"
+        )
+    for sever_command in server_commands:
+        exec_command(ssh, sever_command)
+
+
+# 暂停服务器中的docker
 def stop_docker(server):
     # 暂停服务器中docker运行
     base_name = "spider_traffic"
@@ -283,6 +339,7 @@ def stop_docker(server):
         exec_command(ssh, sever_command)
 
 
+# 删除服务器中的docker及数据
 def del_docker(server):
     # 暂停服务器中docker运行
     base_name = "spider_traffic"
@@ -313,6 +370,7 @@ def del_docker(server):
         exec_command(ssh, sever_command)
 
 
+# 列出服务器信息
 def list_infomation(server):
     print("=================")
     translations = {
@@ -330,9 +388,13 @@ def list_infomation(server):
         "disk": "磁盘",
     }
     for key, value in server.items():
-        print(f"{translations[key]}：{value}")
+        try:
+            print(f"{translations[key]}：{value}")
+        except KeyError:
+            continue
 
 
+# 删除服务器中的镜像
 def rmi_images(server):
     # 暂停服务器中docker运行
     base_name = "spider_traffic"
@@ -367,6 +429,8 @@ def main(action):
             handle_server(server)
         elif action == "stop":
             stop_docker(server)
+        elif action == "start":
+            start_docker(server)
         elif action == "del":
             del_docker(server)
         elif action == "list":
@@ -375,12 +439,13 @@ def main(action):
             rmi_images(server)
 
 
+# 命令行参数解析入口
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="服务器处理脚本")
     parser.add_argument(
         "action",
-        choices=["bushu", "stop", "del", "list", "rmi"],
-        help="bushu（服务器部署），stop（暂停所有docker），del（删除所有docker和存储数据）,list（列出所有操作的服务器信息）, rmi（删除制定的镜像）",
+        choices=["bushu", "stop", "del", "list", "rmi", "start"],
+        help="bushu（服务器部署），stop（暂停所有docker），del（删除所有docker和存储数据）,list（列出所有操作的服务器信息）, rmi（删除制定的镜像），start（继续开始docker）",
     )
     args = parser.parse_args()
 

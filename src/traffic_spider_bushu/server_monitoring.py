@@ -1,7 +1,14 @@
 import re
 
 import paramiko
-from wechat_bot_aimafan import wechat_send
+
+try:
+    from traffic_spider_bushu.feishu import send_feishu_message
+except (ImportError, ModuleNotFoundError):
+
+    def send_feishu_message(*args, **kwargs):
+        pass
+
 
 from traffic_spider_bushu.myutils.logger import logger
 from traffic_spider_bushu.server_info import servers_info
@@ -75,7 +82,7 @@ def check_usage(ssh, disk, directory):
     return result
 
 
-if __name__ == "__main__":
+def action():
     # 监控每台服务器
     messages = []
     for server in servers_info:
@@ -103,6 +110,10 @@ if __name__ == "__main__":
             f"采集总占用空间：{sum_sizes(result['docker_usage_list']):.2f} GB\n"
             f"剩余空间：{result['free_space']}"
         )
-        logger.info(message)
+        # logger.info(message)
         messages.append(message)
-    wechat_send("\n\n========\n\n".join(messages), "server_status")
+    send_feishu_message("\n\n========\n\n".join(messages))
+
+
+if __name__ == "__main__":
+    action()
