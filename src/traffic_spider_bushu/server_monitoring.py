@@ -3,7 +3,7 @@ import re
 import paramiko
 
 try:
-    from traffic_spider_bushu.feishu import send_feishu_message
+    from traffic_spider_bushu.myutils.feishu import send_feishu_message
 except (ImportError, ModuleNotFoundError):
 
     def send_feishu_message(*args, **kwargs):

@@ -2,7 +2,7 @@
 
 Traffic Spider 部署工具是一个 Python 脚本，旨在远程部署和管理多个服务器上的网络爬虫容器。本工具支持通过 SSH 连接到远程服务器，执行命令、上传文件、管理 Docker 容器，并根据配置自动启动爬虫任务。
 
-docker代码项目路径 [spider_traffic.git](https://github.com/ZGC-BUPT-aimafan/spider_traffic.git)
+docker代码项目路径 [spider_traffic.git](https://github.com/aimafan123/spider_traffic.git)
 
 ## 功能特性
 
@@ -55,4 +55,3 @@ python -m traffic_spider_bushu.action bushu
 
 ## 服务器监控程序
 可以运行 `bash bin/server_monitoring.sh` 检测服务器运行
-> 对应执行的程序 src/traffic_spider_bushu/server_monitoring.py 中调用了wechat_bot_aimafan库，该库为私有库，运行时需要将导入和对应引用去掉
