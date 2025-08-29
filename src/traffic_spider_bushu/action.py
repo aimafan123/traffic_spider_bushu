@@ -22,12 +22,14 @@ def exec_command_async(client: paramiko.SSHClient, command: str):
     logger.info(f"正在执行远程命令: {command}")
     stdin, stdout, stderr = client.exec_command(command)
 
-    # 循环读取输出，直到命令执行完成
     while not stdout.channel.exit_status_ready():
-        # 逐行读取标准输出，避免阻塞
-        line = stdout.readline()
-        if line:
-            print(f"STDOUT: {line.strip()}")  # 打印标准输出
+        if stdout.channel.recv_ready():
+            for line in stdout:
+                print(f"STDOUT: {line.strip()}")
+
+    # 补充读取剩余输出
+    for line in stdout:
+        print(f"STDOUT: {line.strip()}")
 
     # 读取命令执行后的所有标准错误输出
     err = stderr.read().decode().strip()
@@ -145,7 +147,8 @@ mode = {server_info["spider_mode"]}
 scroll = {server_info["scroll"]}
 scroll_num = {server_info["scroll_num"]}
 multisite_num = {server_info["multisite_num"]}
-webnum={server_info["webnum"]}"""
+webnum={server_info["webnum"]}
+disable_quic={server_info["disable_quic"]}"""
     return config_str
 
 
@@ -304,6 +307,12 @@ def handle_server_deployment(server_info: dict):
                 commands_to_execute.append(f"mkdir -p {container_data_dir}")
                 commands_to_execute.append(f"mkdir -p {container_logs_dir}")
 
+                # 需要先执行一波
+                for cmd in commands_to_execute:
+                    exec_command_async(ssh_client, cmd)
+
+                commands_to_execute.clear()  # 清空命令列表，准备下一轮
+
                 # 生成并写入容器的 config.ini 配置文件
                 config_content = generate_server_config_content(server_info)
                 commands_to_execute.append(
@@ -316,11 +325,16 @@ def handle_server_deployment(server_info: dict):
                 ]
 
                 # 将当前容器的 URL 列表内容写入临时文件，并上传到远程服务器
-                temp_local_url_file = (
-                    f"/tmp/{container_name}_current_docker_url_list.txt"
+                temp_local_url_file = os.path.join(
+                    project_path,
+                    "data",
+                    "tmp",
+                    f"{container_name}_current_docker_url_list.txt",
                 )
+                os.makedirs(os.path.dirname(temp_local_url_file), exist_ok=True)
                 with open(temp_local_url_file, "w", encoding="utf-8") as f:
                     f.write(current_docker_url_content)
+
                 upload_file_scp(
                     scp_client,
                     temp_local_url_file,
@@ -567,7 +581,7 @@ def list_server_information(server_info: dict):
         )  # 格式化输出，保持对齐
 
 
-def remove_remote_docker_images(server_info: dict):
+def remove_remote_docker_images(server_info: dict, image_name: str):
     """
     在远程服务器上删除指定的 Docker 镜像。
 
@@ -578,7 +592,6 @@ def remove_remote_docker_images(server_info: dict):
     username = server_info["username"]
     port = server_info["port"]
     private_key_path = server_info["private_key_path"]
-    image_name = config["spider"]["image_name"]  # 从配置中获取镜像名称
 
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -606,13 +619,65 @@ def remove_remote_docker_images(server_info: dict):
             ssh_client.close()
 
 
-# --- 主程序入口 ---
-def main(action: str):
+def load_remote_docker_image(server_info: dict, image_tar_path: str):
+    """
+    将本地 Docker 镜像 .tar 文件传输到远程服务器并加载。
+
+    Args:
+        server_info (dict): 包含服务器连接信息的字典。
+        image_tar_path (str): 本地镜像 .tar 文件的路径。
+    """
+    hostname = server_info["hostname"]
+    username = server_info["username"]
+    port = server_info["port"]
+    private_key_path = server_info["private_key_path"]
+
+    ssh_client = paramiko.SSHClient()
+    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    sftp_client = None  # 初始化 SFTP 客户端变量
+
+    try:
+        logger.info(f"正在连接到 {hostname}:{port}...")
+        ssh_client.connect(
+            hostname, port=port, username=username, key_filename=private_key_path
+        )
+        logger.info(f"成功连接到 {hostname}。")
+
+        # 获取本地文件名，作为远程服务器上的临时文件名
+        remote_temp_path = image_tar_path
+
+        logger.info(f"正在远程服务器上加载镜像...")
+        exec_command_async(ssh_client, f"docker load -i {remote_temp_path}")
+        logger.info("镜像加载命令已发送。")
+
+        logger.info(f"正在删除远程服务器上的临时文件 '{remote_temp_path}'...")
+        sftp_client.remove(remote_temp_path)
+        logger.info("临时文件已成功删除。")
+
+    except paramiko.AuthenticationException:
+        logger.error(f"SSH 认证失败，请检查用户名、私钥或密码。主机: {hostname}")
+    except paramiko.SSHException as e:
+        logger.error(f"SSH 连接或执行命令失败：{e}。主机: {hostname}")
+    except FileNotFoundError:
+        logger.error(f"本地文件 '{image_rar_path}' 不存在，请检查路径。")
+    except Exception as e:
+        logger.error(f"在 {hostname} 加载 Docker 镜像时发生未知错误：{e}")
+    finally:
+        # 确保 SFTP 和 SSH 客户端都被关闭
+        if sftp_client:
+            sftp_client.close()
+        if ssh_client:
+            ssh_client.close()
+
+
+def main(action: str, image_name: str = None, image_rar_path: str = None):
     """
     主函数，根据传入的动作参数，对所有配置的服务器执行相应的操作。
 
     Args:
-        action (str): 要执行的操作，可选值包括 "bushu", "stop", "del", "list", "rmi", "start"。
+        action (str): 要执行的操作。
+        image_name (str): 要删除的Docker镜像名称，仅在action为"rmi"时需要。
+        image_rar_path (str): 本地镜像 .rar 文件路径，仅在action为"load"时需要。
     """
     logger.info(f"--- 开始执行操作: {action} ---")
 
@@ -632,15 +697,16 @@ def main(action: str):
             elif action == "list":
                 list_server_information(server_info)
             elif action == "rmi":
-                remove_remote_docker_images(server_info)
+                remove_remote_docker_images(server_info, image_name)
+            # 修改2: 新增 load 选项
+            elif action == "load":
+                load_remote_docker_image(server_info, image_name)
             else:
                 logger.error(f"未知操作: {action}。")
-                continue  # 跳过当前服务器，处理下一个
+                continue
 
         except Exception as e:
             logger.error(f"处理服务器 {hostname} 时发生错误: {e}")
-            # 可以选择发送飞书消息通知错误
-            # send_feishu_message(f"🚨 处理服务器 {hostname} 失败：{e}")
 
     logger.info(f"--- 操作 '{action}' 执行完成 ---")
 
@@ -650,15 +716,32 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="服务器部署与管理脚本。")
     parser.add_argument(
         "action",
-        choices=["bushu", "stop", "del", "list", "rmi", "start"],
+        # 修改3: 在 choices 中添加 "load"
+        choices=["bushu", "stop", "del", "list", "rmi", "start", "load"],
         help="选择要执行的操作: \n"
-        "  bushu: 部署服务器上的所有爬虫Docker容器并启动。\n"
-        "  stop: 暂停服务器上所有爬虫Docker容器。\n"
-        "  del: 删除服务器上所有爬虫Docker容器及其数据（**警告：数据将丢失**）。\n"
+        "  bushu: 部署所有爬虫Docker容器并启动。\n"
+        "  stop: 暂停所有爬虫Docker容器。\n"
+        "  del: 删除所有爬虫Docker容器及其数据（**警告：数据将丢失**）。\n"
         "  list: 列出所有配置的服务器信息。\n"
-        "  rmi: 删除服务器上指定的Docker镜像。\n"
-        "  start: 启动服务器上所有已存在的爬虫Docker容器。",
+        "  rmi: 删除指定的Docker镜像。**需要额外提供镜像名称**。\n"
+        "  start: 启动所有已存在的爬虫Docker容器。\n"
+        "  load: 将本地镜像 rar 包传输并加载到服务器。**需要额外提供 tar 文件路径**。",
     )
+    parser.add_argument(
+        "image_name",
+        nargs="?",
+        help="要删除的Docker镜像名称。当'action'为'rmi'时，此参数必填。",
+    )
+
     args = parser.parse_args()
 
-    main(args.action)
+    # 检查 rmi 操作是否提供了 image_name
+    if args.action == "rmi" and not args.image_name:
+        parser.error("执行 'rmi' 操作必须提供一个镜像名称。")
+
+    # 修改5: 增加检查 load 操作是否提供了 image_rar_path
+    if args.action == "load" and not args.image_name:
+        parser.error("执行 'load' 操作必须提供一个镜像 .tar 文件路径。")
+
+    # 修改6: 调用主函数时，传入所有参数
+    main(args.action, args.image_name)

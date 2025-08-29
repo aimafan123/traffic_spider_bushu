@@ -18,6 +18,7 @@ servers_info = [
         "multisite_num": 3, # 一次访问中，网站的数量，对应spider_traffic中的multi-site分支
         "xray_name": "vultr5_http.json",  # xray配置文件的名称，配置文件在data/xray_config，如果采用direct模式的话，此处填 direct.json
         "disk": "/dev/vda2",  # 部署服务器存储路径对应的磁盘名称，用于监控空闲空间
+        "disable_quic": "true",     # 是否禁用quic
     },
     {
         "hostname": "x.x.x.x",  # 主机IP地址
@@ -38,6 +39,7 @@ servers_info = [
         "webnum": 1,  # 每个网站访问网页的个数，-1表示无限访问网页，1表示只访问主页
         "multisite_num": 3, # 一次访问中，网站的数量，对应spider_traffic中的multi-site分支
         "disk": "/dev/vda2",  # 部署服务器存储路径对应的磁盘名称，用于监控空闲空间
+        "disable_quic": "true",     # 是否禁用quic
     },
     {
         "hostname": "x.x.x.x",  # 主机IP地址
@@ -57,5 +59,6 @@ servers_info = [
         "webnum": 1,  # 每个网站访问网页的个数，-1表示无限访问网页，1表示只访问主页
         "multisite_num": 3, # 一次访问中，网站的数量，对应spider_traffic中的multi-site分支
         "disk": "/dev/vda2",  # 部署服务器存储路径对应的磁盘名称，用于监控空闲空间
+        "disable_quic": "true",     # 是否禁用quic
     },
 ]

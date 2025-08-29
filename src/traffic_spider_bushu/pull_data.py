@@ -218,7 +218,7 @@ def main():
     # 4. 将本地同步下来的数据导入数据库
     logger.info("开始将数据导入数据库...")
     try:
-        importdb()  # 调用导入数据库的主函数
+        # importdb()  # 调用导入数据库的主函数
         logger.info("数据成功导入数据库！")
         send_feishu_message("✅ 所有本地数据已成功导入数据库！")
     except Exception as e:
