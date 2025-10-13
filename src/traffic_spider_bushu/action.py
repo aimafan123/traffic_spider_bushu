@@ -148,7 +148,9 @@ scroll = {server_info["scroll"]}
 scroll_num = {server_info["scroll_num"]}
 multisite_num = {server_info["multisite_num"]}
 webnum={server_info["webnum"]}
-disable_quic={server_info["disable_quic"]}"""
+disable_quic={server_info["disable_quic"]}
+is_decode={server_info["is_decode"]}
+"""
     return config_str
 
 

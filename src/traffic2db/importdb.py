@@ -13,7 +13,7 @@ from traffic2db.myutils.config import config
 from traffic2db.myutils.logger import logger
 
 try:
-    from myutils.feishu import send_feishu_message
+    from traffic2db.myutils.feishu import send_feishu_message
 except ImportError:
 
     def send_feishu_message(*args, **kwargs):
