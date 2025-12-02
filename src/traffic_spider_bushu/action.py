@@ -344,7 +344,7 @@ def handle_server_deployment(server_info: dict):
                     temp_local_url_file,
                     os.path.join(container_config_dir, "current_docker_url_list.txt"),
                 )
-                os.remove(temp_local_url_file)  # 清理本地临时文件
+                # os.remove(temp_local_url_file)  # 清理本地临时文件
 
                 # 写入排除关键词文件
                 commands_to_execute.append(
