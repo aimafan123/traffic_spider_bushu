@@ -21,20 +21,30 @@
 # 1. 所有服务器的 IP 地址列表。
 #    第一个将作为 "源服务器" (公钥的来源)。
 SERVERS=(
-    "158.247.252.15"  # vultr6
-    "141.164.58.43"   # vultr7
-    "158.247.249.197" # vultr8
-    "158.247.231.29"  # vultr9
-    "141.164.40.115"  # vultr10
+    "149.28.36.24"    # vultra
+    "149.28.235.233"  # vultrb
+    "45.76.165.158"   # vultrc
+    "149.28.57.249"   # vultrd
+    "45.77.155.52"    # vultre
+    "198.13.63.148"   # vultrf
+    "104.238.176.225" # vultrg
+    "149.28.170.226"  # vultrh
+    "139.180.223.157" # vultri
+    "139.84.234.44"   # vultrj
 )
 
-# 2. 与上面 IP 地址一一对应的主机名。
+# 2. 与上面 IP 地址一一对应的主机名
 HOSTNAMES=(
-    "vultr6"
-    "vultr7"
-    "vultr8"
-    "vultr9"
-    "vultr10"
+    "vultra"
+    "vultrb"
+    "vultrc"
+    "vultrd"
+    "vultre"
+    "vultrf"
+    "vultrg"
+    "vultrh"
+    "vultri"
+    "vultrj"
 )
 
 # 3. 用于SSH连接的用户名 (例如: root, ubuntu, centos)
@@ -60,7 +70,7 @@ fi
 # 分离源服务器和目标服务器
 SOURCE_SERVER=${SERVERS[0]}
 DEST_SERVERS=("${SERVERS[@]:1}")
-SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=5"
+SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
 
 # 第一部分 (新增): 清理本地的 known_hosts
 echo -e "${GREEN}--- (1/5) 清理本地的 known_hosts 条目 ---${NC}"

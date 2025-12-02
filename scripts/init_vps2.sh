@@ -13,11 +13,16 @@
 # --- 请在这里配置您的服务器信息 ---
 
 SERVERS=(
-    "158.247.252.15"  # vultr6 (源服务器)
-    "vultr7"   # vultr7
-    "vultr8" # vultr8
-    "vultr9"  # vultr9
-    "vultr10"  # vultr10
+    "149.28.36.24"  # vultra (源服务器)
+    # "vultrb"
+    "vultrc"
+    "vultrd"
+    "vultre"
+    "vultrf"
+    "vultrg"
+    "vultrh"
+    "vultri"
+    "vultrj"
 )
 SSH_USER="root"
 FILENAME="single_spider_traffic_251013.tar"
@@ -33,7 +38,7 @@ NC='\033[0m'
 SOURCE_SERVER=${SERVERS[0]}
 DEST_SERVERS=("${SERVERS[@]:1}")
 REMOTE_FILE_PATH="~/${FILENAME}"
-SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
+SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=20"
 
 # 预检查
 echo -e "${YELLOW}--- 预检查：正在确认源文件 ${FILENAME} 是否存在于 ${SOURCE_SERVER} ...${NC}"

@@ -94,12 +94,16 @@ def sync_data_with_rsync(
 
     logger.info(f"开始从 {hostname} 同步数据到 {local_path}...")
     # 构建 rsync 命令，-az 表示归档模式和压缩传输
+    ssh_opts = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
     rsync_command = [
         "rsync",
         "-az",
+        "-e",
+        ssh_opts,  # 告诉 rsync 使用带有特定参数的 ssh
         f"{username}@{hostname}:{remote_dir}/",
         local_path,
-    ]  # remote_dir后加'/'确保同步的是目录内容
+    ]
     try:
         # 执行 rsync 命令，check=True 表示如果命令返回非零退出码则抛出 CalledProcessError
         subprocess.run(rsync_command, check=True, capture_output=True, text=True)
@@ -148,22 +152,22 @@ def execute_remote_script(
             logger.info(f"远程脚本输出：\n{output}")
         if error_output:
             logger.error(f"远程脚本执行错误：\n{error_output}")
-            send_feishu_message(
-                f"警告：在 {hostname} 上执行远程脚本 '{script_path}' 时发生错误：{error_output}"
-            )
+            # send_feishu_message(
+            #     f"警告：在 {hostname} 上执行远程脚本 '{script_path}' 时发生错误：{error_output}"
+            # )
         else:
             logger.info(f"在 {hostname} 上成功执行远程脚本 '{script_path}'。")
     except paramiko.AuthenticationException:
         logger.error(f"SSH 认证失败，请检查用户名、私钥或密码。主机: {hostname}")
-        send_feishu_message(f"错误：SSH 认证失败，主机: {hostname}")
+        # send_feishu_message(f"错误：SSH 认证失败，主机: {hostname}")
     except paramiko.SSHException as e:
         logger.error(f"SSH 连接或执行命令失败：{e}")
-        send_feishu_message(
-            f"错误：SSH 连接或执行命令失败，主机: {hostname}，错误: {e}"
-        )
+        # send_feishu_message(
+        # f"错误：SSH 连接或执行命令失败，主机: {hostname}，错误: {e}"
+        # )
     except Exception as e:
         logger.error(f"执行远程脚本时发生未知错误：{e}")
-        send_feishu_message(f"错误：在 {hostname} 上执行远程脚本时发生未知错误：{e}")
+        # send_feishu_message(f"错误：在 {hostname} 上执行远程脚本时发生未知错误：{e}")
     finally:
         # 确保SSH连接关闭
         if ssh_client:
@@ -199,11 +203,11 @@ def main():
                 hostname, port, username, private_key_path, remote_cleanup_script_path
             )
 
-            send_feishu_message(f"🎉 {hostname} 数据同步及远程旧数据清理完成！")
+            # send_feishu_message(f"🎉 {hostname} 数据同步及远程旧数据清理完成！")
 
         except Exception as e:
             logger.error(f"处理 {hostname} 时发生错误：{e}")
-            send_feishu_message(f"❌ 处理 {hostname} 失败：{e}")
+            # send_feishu_message(f"❌ 处理 {hostname} 失败：{e}")
             # 如果某个服务器处理失败，可以选择跳过或继续处理下一个
             continue
 
@@ -213,7 +217,7 @@ def main():
     # 3. 检查服务器资源使用情况（例如磁盘、内存等）
     logger.info("开始检查服务器资源使用情况...")
     check_usage_action()
-    send_feishu_message("✅ 服务器资源使用情况检查完成。")
+    # send_feishu_message("✅ 服务器资源使用情况检查完成。")
 
     # # 4. 将本地同步下来的数据导入数据库
     # logger.info("开始将数据导入数据库...")

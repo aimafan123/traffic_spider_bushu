@@ -1,7 +1,8 @@
-from traffic_spider_bushu.myutils import project_path
 import logging
 import logging.handlers
 import os
+
+from traffic_spider_bushu.myutils import project_path
 
 
 # 配置日志基本设置
@@ -13,12 +14,10 @@ def setup_logging(filename="defult.log"):
     # 创建一个handler，用于写入日志文件
     log_file = os.path.join(project_path, "logs", filename)
 
-
     # 用于写入日志文件，当文件大小超过500MB时进行滚动
-    file_handler = logging.handlers.RotatingFileHandler(log_file,
-                                                        maxBytes=50 * 1024 *
-                                                        1024,
-                                                        backupCount=3)
+    file_handler = logging.handlers.RotatingFileHandler(
+        log_file, maxBytes=50 * 1024 * 1024, backupCount=3
+    )
     file_handler.setLevel(logging.DEBUG)
 
     # 创建一个handler，用于将日志输出到控制台
@@ -28,7 +27,7 @@ def setup_logging(filename="defult.log"):
     # 定义handler的输出格式
     # formatter = logging.Formatter
     # ('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
 
@@ -37,5 +36,6 @@ def setup_logging(filename="defult.log"):
     logger.addHandler(console_handler)
 
     return logger
+
 
 logger = setup_logging()

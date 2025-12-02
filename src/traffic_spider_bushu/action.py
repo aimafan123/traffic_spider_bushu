@@ -238,6 +238,8 @@ def handle_server_deployment(server_info: dict):
     local_del_old_pcap_script = os.path.join(project_path, "data", "del_old_pcap.sh")
     remote_del_old_pcap_script = os.path.join(storage_path, "del_old_pcap.sh")
 
+    # local_full_url_file = os.path.join(project_path, "urls.txt")
+
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # 自动添加主机密钥
 

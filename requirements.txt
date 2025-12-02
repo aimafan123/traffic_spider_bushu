@@ -24,5 +24,4 @@ scapy==2.6.0
 scp==0.15.0
 tqdm==4.67.1
 urllib3==2.2.3
-wechat_bot_aimafan @ file:///home/aimafan/wechat_bot_aimafan-0.1.0-py3-none-any.whl#sha256=f9bda1cbb9208f4055376b57be591a3fa336d085a1e10c491a72a8e779b0dffd
 yarl==1.18.3
