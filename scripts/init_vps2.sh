@@ -13,16 +13,18 @@
 # --- 请在这里配置您的服务器信息 ---
 
 SERVERS=(
-    "149.28.36.24"  # vultra (源服务器)
-    # "vultrb"
-    "vultrc"
-    "vultrd"
-    "vultre"
-    "vultrf"
-    "vultrg"
-    "vultrh"
-    "vultri"
-    "vultrj"
+    "vultr6us"
+    "vultr24de"
+    "vultr25de"
+    "vultr20us"
+    "vultr21us"
+    "vultr22jp"
+    "vultr23jp"
+    "vultr10de"
+    "vultr11de"
+    "vultr7us"
+    "vultr8jp"
+    "vultr9jp"
 )
 SSH_USER="root"
 FILENAME="single_spider_traffic_251013.tar"

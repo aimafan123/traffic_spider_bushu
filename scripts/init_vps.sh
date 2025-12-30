@@ -18,33 +18,36 @@
 
 # --- 请在这里配置您的服务器信息 ---
 
-# 1. 所有服务器的 IP 地址列表。
-#    第一个将作为 "源服务器" (公钥的来源)。
+# 1. IP 地址数组
 SERVERS=(
-    "149.28.36.24"    # vultra
-    "149.28.235.233"  # vultrb
-    "45.76.165.158"   # vultrc
-    "149.28.57.249"   # vultrd
-    "45.77.155.52"    # vultre
-    "198.13.63.148"   # vultrf
-    "104.238.176.225" # vultrg
-    "149.28.170.226"  # vultrh
-    "139.180.223.157" # vultri
-    "139.84.234.44"   # vultrj
+    "140.82.3.118"    # vultr6us
+    "95.179.161.248"  # vultr24de
+    "80.240.22.234"   # vultr25de
+    "64.176.212.83"   # vultr20us
+    "45.77.219.200"   # vultr21us
+    "45.77.19.17"     # vultr22jp
+    "108.61.126.194"  # vultr23jp
+    "45.76.92.124"    # vultr10de
+    "95.179.247.83"   # vultr11de
+    "45.76.10.210"    # vultr7us
+    "45.32.35.218"    # vultr8jp
+    "45.32.46.59"     # vultr9jp
 )
 
 # 2. 与上面 IP 地址一一对应的主机名
 HOSTNAMES=(
-    "vultra"
-    "vultrb"
-    "vultrc"
-    "vultrd"
-    "vultre"
-    "vultrf"
-    "vultrg"
-    "vultrh"
-    "vultri"
-    "vultrj"
+    "vultr6us"
+    "vultr24de"
+    "vultr25de"
+    "vultr20us"
+    "vultr21us"
+    "vultr22jp"
+    "vultr23jp"
+    "vultr10de"
+    "vultr11de"
+    "vultr7us"
+    "vultr8jp"
+    "vultr9jp"
 )
 
 # 3. 用于SSH连接的用户名 (例如: root, ubuntu, centos)
