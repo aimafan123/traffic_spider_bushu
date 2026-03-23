@@ -7,3 +7,6 @@ user = root
 port = 3306
 password = password
 database = database
+
+[path]
+source_path = /netdisk/aimafan/traffic_datasets_new/rewf

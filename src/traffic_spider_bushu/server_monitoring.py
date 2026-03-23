@@ -10,6 +10,7 @@ except (ImportError, ModuleNotFoundError):
         pass
 
 
+from traffic_spider_bushu.action import get_ssh_config
 from traffic_spider_bushu.myutils.logger import logger
 from traffic_spider_bushu.server_info import servers_info
 
@@ -92,9 +93,17 @@ def action():
         private_key_path = server["private_key_path"]
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        user_config = get_ssh_config(hostname)
+        proxy = None
+        if "proxycommand" in user_config:
+            proxy = paramiko.ProxyCommand(user_config["proxycommand"])
         try:
             ssh.connect(
-                hostname, port=port, username=username, key_filename=private_key_path
+                hostname,
+                port=port,
+                username=username,
+                key_filename=private_key_path,
+                sock=proxy,
             )
         except Exception as e:
             message = f"{hostname} can not connect: {e}"

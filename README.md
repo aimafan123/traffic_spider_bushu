@@ -51,6 +51,48 @@ python -m traffic_spider_bushu.action bushu
 
 具体可以在 `src` 路径下运行 `python -m traffic_spider_bushu.action --help` 查看
 
+## VPS 初始化（配置驱动）
+
+现在 `scripts/init_vps.sh` 和 `scripts/init_vps2.sh` 支持统一配置文件与自动解析 IP。
+`scripts/init_vps_all.sh` 已包含：
+- 基础初始化（hostname、hosts、Docker、免密）
+- 从本地上传 tar 镜像到第一个 VPS
+- 由第一个 VPS 分发镜像到其余 VPS 并执行 `docker load`
+
+1. 编辑 `config/vps_init.conf`（仓库已提供默认文件）  
+- 只需要维护 `HOSTNAMES=(...)`  
+- 脚本会从 `HOSTS_FILE`（默认 `/etc/hosts`）自动解析每个 hostname 对应的 IP  
+
+2. 一键执行全部初始化（推荐）  
+```bash
+bash scripts/init_vps_all.sh
+```
+
+3. 或按阶段执行  
+```bash
+bash scripts/init_vps.sh
+bash scripts/init_vps2.sh
+```
+
+也可通过 `--config` 指定其他配置文件路径，或用 `--skip-image` / `--skip-upload` 控制镜像阶段。
+
+## REWF 时间漂移测试一键流程
+
+可直接运行：
+
+```bash
+bash scripts/rewf_time_drift_collect.sh
+```
+
+该脚本会串联：
+1. 创建本地目录 `/netdisk/aimafan/traffic_datasets_new/rewf` 并更新 `config.ini` 的 `source_path`
+2. 在第一个 VPS 执行 `ssh-keygen -t ed25519`（如未生成）
+3. 执行 `scripts/init_vps_all.sh`
+4. 自动更新 `src/traffic_spider_bushu/server_info.py` 的 `vps_name` 与 `hostname`
+5. 自动执行 `python -m traffic_spider_bushu.action bushu`
+
+详细 SOP 见：`docs/rewf_time_drift_sop.md`
+
 
 ## 自动拉取数据
 

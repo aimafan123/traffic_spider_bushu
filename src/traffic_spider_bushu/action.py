@@ -11,6 +11,18 @@ from traffic_spider_bushu.myutils.logger import logger
 from traffic_spider_bushu.server_info import servers_info
 
 
+def get_ssh_config(hostname):
+    """从 ~/.ssh/config 中读取主机的配置信息"""
+    ssh_config = paramiko.SSHConfig()
+    config_file = os.path.expanduser("~/.ssh/config")
+    if os.path.exists(config_file):
+        with open(config_file) as f:
+            ssh_config.parse(f)
+
+    user_config = ssh_config.lookup(hostname)
+    return user_config
+
+
 def exec_command_async(client: paramiko.SSHClient, command: str):
     """
     在远程服务器上异步执行命令，并实时打印标准输出和标准错误输出。
@@ -139,6 +151,7 @@ host=127.0.0.1
 port={server_info["proxy_port"]}
 
 [spider]
+browser={server_info["browser"]}
 depth=-1
 time_per_website={server_info["time_per_website"]}
 # 爬虫连续爬取URL的延时。单位秒
@@ -243,11 +256,20 @@ def handle_server_deployment(server_info: dict):
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # 自动添加主机密钥
 
+    user_config = get_ssh_config(hostname)
+    proxy = None
+    if "proxycommand" in user_config:
+        proxy = paramiko.ProxyCommand(user_config["proxycommand"])
+
     try:
         logger.info(f"正在连接到 {hostname}:{port}...")
         # 使用私钥连接服务器
         ssh_client.connect(
-            hostname, port=port, username=username, key_filename=private_key_path
+            hostname,
+            port=port,
+            username=username,
+            key_filename=private_key_path,
+            sock=proxy,
         )
         logger.info(f"成功连接到 {hostname}。")
 
@@ -283,9 +305,7 @@ def handle_server_deployment(server_info: dict):
                 current_server_start_index += int(s["docker_num"])
 
             # 分割 URL 文件，为每个 Docker 容器准备其专属的 URL 列表
-            url_parts_list = split_url_file(
-                os.path.join(project_path, "urls.txt"), total_docker_num
-            )
+            url_parts_list = split_url_file(os.path.join(project_path, "urls.txt"), 1)
 
             # --- 为每个 Docker 容器生成配置和启动命令 ---
             commands_to_execute = []  # 存储所有待执行的命令
@@ -324,9 +344,7 @@ def handle_server_deployment(server_info: dict):
                 )
 
                 # 处理当前 Docker 容器的 URL 列表
-                current_docker_url_content = url_parts_list[
-                    current_server_start_index + i
-                ]
+                current_docker_url_content = url_parts_list[0]
 
                 # 将当前容器的 URL 列表内容写入临时文件，并上传到远程服务器
                 temp_local_url_file = os.path.join(
@@ -421,10 +439,19 @@ def start_dockers_on_server(server_info: dict):
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    user_config = get_ssh_config(hostname)
+    proxy = None
+    if "proxycommand" in user_config:
+        proxy = paramiko.ProxyCommand(user_config["proxycommand"])
+
     try:
         logger.info(f"正在连接到 {hostname}:{port}...")
         ssh_client.connect(
-            hostname, port=port, username=username, key_filename=private_key_path
+            hostname,
+            port=port,
+            username=username,
+            key_filename=private_key_path,
+            sock=proxy,
         )
         logger.info(f"成功连接到 {hostname}。")
 
@@ -468,10 +495,19 @@ def stop_dockers_on_server(server_info: dict):
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    user_config = get_ssh_config(hostname)
+    proxy = None
+    if "proxycommand" in user_config:
+        proxy = paramiko.ProxyCommand(user_config["proxycommand"])
+
     try:
         logger.info(f"正在连接到 {hostname}:{port}...")
         ssh_client.connect(
-            hostname, port=port, username=username, key_filename=private_key_path
+            hostname,
+            port=port,
+            username=username,
+            key_filename=private_key_path,
+            sock=proxy,
         )
         logger.info(f"成功连接到 {hostname}。")
 
@@ -513,10 +549,19 @@ def delete_dockers_and_data_on_server(server_info: dict):
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    user_config = get_ssh_config(hostname)
+    proxy = None
+    if "proxycommand" in user_config:
+        proxy = paramiko.ProxyCommand(user_config["proxycommand"])
+
     try:
         logger.info(f"正在连接到 {hostname}:{port}...")
         ssh_client.connect(
-            hostname, port=port, username=username, key_filename=private_key_path
+            hostname,
+            port=port,
+            username=username,
+            key_filename=private_key_path,
+            sock=proxy,
         )
         logger.info(f"成功连接到 {hostname}。")
 
@@ -600,10 +645,19 @@ def remove_remote_docker_images(server_info: dict, image_name: str):
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    user_config = get_ssh_config(hostname)
+    proxy = None
+    if "proxycommand" in user_config:
+        proxy = paramiko.ProxyCommand(user_config["proxycommand"])
+
     try:
         logger.info(f"正在连接到 {hostname}:{port}...")
         ssh_client.connect(
-            hostname, port=port, username=username, key_filename=private_key_path
+            hostname,
+            port=port,
+            username=username,
+            key_filename=private_key_path,
+            sock=proxy,
         )
         logger.info(f"成功连接到 {hostname}。")
 
@@ -639,11 +693,19 @@ def load_remote_docker_image(server_info: dict, image_tar_path: str):
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     sftp_client = None  # 初始化 SFTP 客户端变量
+    user_config = get_ssh_config(hostname)
+    proxy = None
+    if "proxycommand" in user_config:
+        proxy = paramiko.ProxyCommand(user_config["proxycommand"])
 
     try:
         logger.info(f"正在连接到 {hostname}:{port}...")
         ssh_client.connect(
-            hostname, port=port, username=username, key_filename=private_key_path
+            hostname,
+            port=port,
+            username=username,
+            key_filename=private_key_path,
+            sock=proxy,
         )
         logger.info(f"成功连接到 {hostname}。")
 

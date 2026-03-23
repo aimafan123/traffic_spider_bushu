@@ -15,6 +15,7 @@ except (ImportError, ModuleNotFoundError):
 
 # 从自定义模块导入数据库导入主函数、项目路径、配置和日志记录器
 from traffic2db.importdb import main as importdb
+from traffic_spider_bushu.action import get_ssh_config
 from traffic_spider_bushu.myutils import project_path
 from traffic_spider_bushu.myutils.config import config
 from traffic_spider_bushu.myutils.logger import logger
@@ -133,11 +134,19 @@ def execute_remote_script(
     ssh_client = paramiko.SSHClient()
     # 自动添加远程主机的密钥，不进行严格的主机密钥检查（首次连接时可能需要用户确认）
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    user_config = get_ssh_config(hostname)
+    proxy = None
+    if "proxycommand" in user_config:
+        proxy = paramiko.ProxyCommand(user_config["proxycommand"])
 
     try:
         logger.info(f"正在连接到 {hostname}:{port}...")
         ssh_client.connect(
-            hostname, port=port, username=username, key_filename=private_key_path
+            hostname,
+            port=port,
+            username=username,
+            key_filename=private_key_path,
+            sock=proxy,
         )
         logger.info(f"已连接到 {hostname}，正在执行远程脚本：{script_path}")
         # 执行远程命令，stdin, stdout, stderr 是文件对象
